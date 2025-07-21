@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard - Add Events</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: linear-gradient(to right, #e0eafc, #cfdef3);
+      margin: 0;
+      padding: 0;
+    }
+
+    nav {
+      background-color: #004080;
+      padding: 15px;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    nav h2 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    nav button {
+      padding: 7px 15px;
+      background-color: #ff4d4d;
+      border: none;
+      color: white;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .container {
+      max-width: 600px;
+      background-color: #ffffff;
+      margin: 40px auto;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    h3 {
+      color: #003366;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      color: #003366;
+      font-weight: bold;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    button#addEvent {
+      margin-top: 20px;
+      padding: 12px;
+      width: 100%;
+      background-color: #0073e6;
+      border: none;
+      color: white;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button#addEvent:hover {
+      background-color: #005bb5;
+    }
+
+    .popup {
+      position: fixed;
+      top: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 25px;
+      border-radius: 8px;
+      display: none;
+      z-index: 999;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <h2>Admin Panel</h2>
+    <button onclick="logout()">Logout</button>
+  </nav>
+
+  <div class="container">
+    <h3>Add New Event</h3>
+    <form id="eventForm">
+      <label for="eventName">Event Name:</label>
+      <input type="text" id="eventName" required>
+
+      <label for="eventDate">Event Date:</label>
+      <input type="date" id="eventDate" required min="" />
+
+      <label for="lastDate">Registration Last Date:</label>
+      <input type="date" id="lastDate" required min="" />
+
+      <label for="description">Event Description:</label>
+      <textarea id="description" rows="4" required></textarea>
+
+      <button type="submit" id="addEvent">Add Event</button>
+    </form>
+  </div>
+
+  <div class="popup" id="popupMsg">Event added successfully!</div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+  <script>
+    // Your Firebase config here
+    const firebaseConfig = {
+  apiKey: "AIzaSyDltQfshvwupE20puyWyQYZAGBdtt51his",
+  authDomain: "campus-event-3e425.firebaseapp.com",
+  databaseURL: "https://campus-event-3e425-default-rtdb.firebaseio.com",
+  projectId: "campus-event-3e425",
+  storageBucket: "campus-event-3e425.appspot.com",
+  messagingSenderId: "309211433587",
+  appId: "1:309211433587:web:cc971c84fc5bf401997806",
+  measurementId: "G-9KVQV2C1TX"
+};   
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    const form = document.getElementById("eventForm");
+    const popup = document.getElementById("popupMsg");
+
+    // Set min date to today for both date inputs
+    const today = new Date().toISOString().split("T")[0];
+    document.getElementById("eventDate").min = today;
+    document.getElementById("lastDate").min = today;
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const eventName = document.getElementById("eventName").value;
+      const eventDate = document.getElementById("eventDate").value;
+      const lastDate = document.getElementById("lastDate").value;
+      const description = document.getElementById("description").value;
+
+      const newEventRef = database.ref("events").push();
+      newEventRef.set({
+        name: eventName,
+        date: eventDate,
+        lastDate: lastDate,
+        description: description
+      });
+
+      form.reset();
+      popup.style.display = "block";
+
+      setTimeout(() => {
+        popup.style.display = "none";
+      }, 2500);
+    });
+
+    function logout() {
+      firebase.auth().signOut().then(() => {
+        window.location.href = "login.html";
+      });
+    }
+  </script>
+</body>
+</html>

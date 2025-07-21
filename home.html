@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Event Dashboard</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+
+    nav {
+      background-color: #333;
+      color: #fff;
+      padding: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    nav .username {
+      font-weight: bold;
+    }
+
+    .container {
+      padding: 20px;
+    }
+
+    .event {
+      background-color: #fff;
+      padding: 20px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .event h3 {
+      margin-top: 0;
+    }
+
+    .event button {
+      background-color: #2196F3;
+      color: white;
+      padding: 10px;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .register-form {
+      display: none;
+      margin-top: 10px;
+    }
+
+    .register-form input {
+      margin: 5px 0;
+      padding: 8px;
+      width: 95%;
+    }
+
+    .popup {
+      display: none;
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px;
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      border-radius: 4px;
+    }
+    
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="username" id="username">Hi, User</div>
+    <button onclick="logout()">Logout</button>
+  </nav>
+
+  <div class="container" id="eventList"></div>
+
+  <div class="popup" id="popup">Registration Successful!</div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script>
+    const firebaseConfig = {
+  apiKey: "AIzaSyDltQfshvwupE20puyWyQYZAGBdtt51his",
+  authDomain: "campus-event-3e425.firebaseapp.com",
+  databaseURL: "https://campus-event-3e425-default-rtdb.firebaseio.com",
+  projectId: "campus-event-3e425",
+  storageBucket: "campus-event-3e425.appspot.com",
+  messagingSenderId: "309211433587",
+  appId: "1:309211433587:web:cc971c84fc5bf401997806",
+  measurementId: "G-9KVQV2C1TX"
+};   
+
+
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const username = localStorage.getItem("username") || "User";
+    document.getElementById("username").innerText = "Hi, " + username;
+
+    function showPopup() {
+      const popup = document.getElementById("popup");
+      popup.style.display = "block";
+      setTimeout(() => popup.style.display = "none", 2000);
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
+
+    function loadEvents() {
+      const today = new Date().toISOString().split('T')[0];
+      db.ref("events").once("value", (snapshot) => {
+        const container = document.getElementById("eventList");
+        container.innerHTML = "";
+
+        snapshot.forEach(child => {
+          const event = child.val();
+          const eventDate = event.date;
+          if (eventDate >= today) {
+            const div = document.createElement("div");
+            div.className = "event";
+            div.innerHTML = `
+              <h3>${event.name}</h3>
+              <p><strong>Date:</strong> ${event.date}</p>
+              <p><strong>Last Date to Register:</strong> ${event.lastDate}</p>
+              <p>${event.description}</p>
+              <button onclick="toggleForm('${child.key}')">Register</button>
+              <div class="register-form" id="form-${child.key}">
+                <input type="text" placeholder="Register Number" id="regno-${child.key}" required><br>
+                <input type="text" placeholder="Department" id="dept-${child.key}" required><br>
+                <input type="text" placeholder="Section" id="section-${child.key}" required><br>
+                <button onclick="submitRegistration('${child.key}')">Submit</button>
+              </div>
+            `;
+            container.appendChild(div);
+          }
+        });
+      });
+    }
+
+    function toggleForm(key) {
+      const form = document.getElementById("form-" + key);
+      form.style.display = form.style.display === "block" ? "none" : "block";
+    }
+
+    function submitRegistration(key) {
+      const regNo = document.getElementById(`regno-${key}`).value;
+      const dept = document.getElementById(`dept-${key}`).value;
+      const section = document.getElementById(`section-${key}`).value;
+
+      if (regNo && dept && section) {
+        const registrationData = {
+          regNo, dept, section, username
+        };
+        db.ref("registrations/" + key).push(registrationData);
+        showPopup();
+        document.getElementById(`form-${key}`).style.display = "none";
+      } else {
+        alert("Please fill all fields");
+      }
+    }
+
+    loadEvents();
+  </script>
+</body>
+</html>
